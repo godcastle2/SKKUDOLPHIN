@@ -742,7 +742,8 @@ function drawCollisionDebugOverlay() {
 
 function currentRingSpeed() {
   const speedLevel = Math.floor(state.score / CONFIG.difficulty.speedStepScore);
-  return CONFIG.rings.startSpeed + speedLevel * CONFIG.difficulty.speedPerStep;
+  return CONFIG.rings.startSpeed
+    * Math.pow(CONFIG.difficulty.speedMultiplierPerStep, speedLevel);
 }
 
 function triggerGameOver(reason = GameOverReason.OTHER, ring = null) {

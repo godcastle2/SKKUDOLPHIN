@@ -1,0 +1,79 @@
+import random
+import unittest
+from pathlib import Path
+
+from PIL import Image
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class ProjectIntegrityTest(unittest.TestCase):
+    def test_required_assets_have_expected_dimensions(self):
+        expected = {
+            "LOWPOLY_DOLPHIN.png": (1536, 1024),
+            "ACADEMY_BACKGROUND.png": (1672, 941),
+            "2RING.png": (1774, 887),
+        }
+        for filename, size in expected.items():
+            with self.subTest(filename=filename), Image.open(ROOT / filename) as image:
+                self.assertEqual(image.size, size)
+
+    def test_dolphin_sprite_has_real_transparency(self):
+        with Image.open(ROOT / "LOWPOLY_DOLPHIN.png").convert("RGBA") as image:
+            alpha = image.getchannel("A")
+            minimum, maximum = alpha.getextrema()
+            self.assertEqual(minimum, 0)
+            self.assertGreaterEqual(maximum, 250)
+            self.assertEqual(image.getpixel((0, 0))[3], 0)
+
+    def test_only_current_assets_are_referenced(self):
+        game = (ROOT / "src" / "game.js").read_text(encoding="utf-8")
+        styles = (ROOT / "src" / "styles.css").read_text(encoding="utf-8")
+        self.assertIn("LOWPOLY_DOLPHIN.png", game)
+        self.assertIn("ACADEMY_BACKGROUND.png", game)
+        self.assertIn("2RING.png", game)
+        self.assertIn("ACADEMY_BACKGROUND.png", styles)
+        self.assertNotIn("DOLPHINIMAGE.png", game + styles)
+
+    def test_ranking_ui_and_network_calls_are_removed(self):
+        source = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in [ROOT / "index.html", ROOT / "src" / "game.js"]
+        ).lower()
+        for removed_term in ["rankingpanel", "rankingbutton", "playername", "/api/rankings", "/api/scores"]:
+            self.assertNotIn(removed_term, source)
+
+    def test_pages_workflow_deploys_main_branch(self):
+        workflow = (ROOT / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
+        self.assertIn("branches: [main]", workflow)
+        self.assertIn("actions/configure-pages@v5", workflow)
+        self.assertIn("actions/upload-pages-artifact@v4", workflow)
+        self.assertIn("actions/deploy-pages@v4", workflow)
+
+    def test_speed_increases_every_ten_points_without_cap(self):
+        speed = lambda score: 255 + (score // 10) * 36
+        self.assertEqual(speed(0), 255)
+        self.assertEqual(speed(9), 255)
+        self.assertEqual(speed(10), 291)
+        self.assertEqual(speed(99), 579)
+        self.assertGreater(speed(1000), 415)
+
+    def test_spawn_formula_reaches_upper_and_lower_areas(self):
+        random.seed(20260928)
+        minimum, maximum = 80, 420
+        last = 270
+        samples = []
+        for _ in range(500):
+            target = minimum + random.random() * (maximum - minimum)
+            blended = last + (target - last) * 0.72
+            drift = (random.random() * 2 - 1) * 24
+            last = max(minimum, min(maximum, blended + drift))
+            samples.append(last)
+        self.assertLess(min(samples), 130)
+        self.assertGreater(max(samples), 370)
+        self.assertTrue(all(minimum <= value <= maximum for value in samples))
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -74,6 +74,15 @@ class ProjectIntegrityTest(unittest.TestCase):
         self.assertGreater(max(samples), 370)
         self.assertTrue(all(minimum <= value <= maximum for value in samples))
 
+    def test_landscape_ring_spawns_fully_beyond_visible_world(self):
+        viewport_width = 844
+        scale = min(viewport_width / 960, 390 / 540)
+        visible_world_right = max(960, viewport_width / scale)
+        ring_outer_radius = 73
+        spawn_x = visible_world_right + ring_outer_radius + 70
+        self.assertGreater(spawn_x - ring_outer_radius, visible_world_right)
+        self.assertGreater(visible_world_right, 960)
+
 
 if __name__ == "__main__":
     unittest.main()

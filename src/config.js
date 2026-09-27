@@ -40,6 +40,7 @@ export const CONFIG = {
   },
   rings: {
     spawnEvery: 1.9,
+    spawnLeadDistance: 70,
     startSpeed: 255,
     outerRadius: 73,
     innerRadius: 52,

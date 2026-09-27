@@ -157,6 +157,10 @@ function flapDolphin() {
 
 function spawnRing() {
   const cfg = CONFIG.rings;
+  const visibleWorldRight = Math.max(
+    CONFIG.world.baseWidth,
+    width / Math.max(scale, 0.001)
+  );
   const targetY = cfg.minY + Math.random() * (cfg.maxY - cfg.minY);
   const blendedY = state.lastRingY + (targetY - state.lastRingY) * CONFIG.difficulty.spawnHeightBlend;
   const drift = (Math.random() * 2 - 1) * CONFIG.difficulty.verticalNoise;
@@ -164,7 +168,7 @@ function spawnRing() {
   state.lastRingY = clamp(blendedY + drift, cfg.minY, cfg.maxY);
   state.rings.push({
     id: nextRingId++,
-    x: CONFIG.world.baseWidth + cfg.outerRadius,
+    x: visibleWorldRight + cfg.outerRadius + cfg.spawnLeadDistance,
     y: state.lastRingY,
     outer: cfg.outerRadius,
     inner: Math.max(42, cfg.innerRadius - Math.min(12, state.score * 0.16)),

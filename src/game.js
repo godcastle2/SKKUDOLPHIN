@@ -16,12 +16,12 @@ import {
 const canvas = document.querySelector("#game");
 const ctx = canvas.getContext("2d");
 const dolphinSprite = new Image();
-dolphinSprite.src = "./LOWPOLY_DOLPHIN.png";
+dolphinSprite.src = "./LOWPOLY_DOLPHIN.png?v=20260928-2";
 const DOLPHIN_SPRITE_CROP = { x: 0, y: 0, width: 1536, height: 1024 };
 const backgroundSprite = new Image();
-backgroundSprite.src = "./ACADEMY_BACKGROUND.png";
+backgroundSprite.src = "./ACADEMY_BACKGROUND.png?v=20260928-2";
 const ringSpriteSheet = new Image();
-ringSpriteSheet.src = "./2RING.png";
+ringSpriteSheet.src = "./2RING.png?v=20260928-2";
 const RING_SPRITE_CROPS = {
   back: { x: 8, y: 8, width: 871, height: 774 },
   front: { x: 895, y: 8, width: 871, height: 774 }
@@ -96,8 +96,6 @@ function createState(mode = "playing") {
     rings: [],
     obstacles: [],
     comboBursts: [],
-    particles: makeParticles(),
-    backgroundDolphins: makeBackgroundDolphins(),
     spawnTimer: 0,
     globalStallTimer: 0,
     worldTime: 0,
@@ -127,25 +125,6 @@ function toScreen(v) {
 
 function worldY(y) {
   return (height - CONFIG.world.baseHeight * scale) / 2 + y * scale;
-}
-
-function makeParticles() {
-  return Array.from({ length: CONFIG.effects.bubbleCount }, () => ({
-    x: Math.random() * CONFIG.world.baseWidth,
-    y: Math.random() * CONFIG.world.baseHeight,
-    r: 2 + Math.random() * 5,
-    speed: 18 + Math.random() * 42
-  }));
-}
-
-function makeBackgroundDolphins() {
-  return Array.from({ length: CONFIG.effects.backgroundDolphinCount }, (_, i) => ({
-    x: Math.random() * CONFIG.world.baseWidth,
-    y: 95 + Math.random() * 320,
-    speed: 10 + Math.random() * 24,
-    size: 0.34 + Math.random() * 0.22,
-    phase: i * 1.7
-  }));
 }
 
 function startGame() {
@@ -781,22 +760,6 @@ function showToast(text) {
 }
 
 function updateAmbient(dt) {
-  for (const b of state.particles) {
-    b.y -= b.speed * dt;
-    b.x -= 12 * dt;
-    if (b.y < -10) {
-      b.y = CONFIG.world.baseHeight + 10;
-      b.x = Math.random() * CONFIG.world.baseWidth;
-    }
-  }
-  for (const d of state.backgroundDolphins) {
-    d.x -= d.speed * dt;
-    d.phase += dt * 2;
-    if (d.x < -120) {
-      d.x = CONFIG.world.baseWidth + Math.random() * 360;
-      d.y = 95 + Math.random() * 320;
-    }
-  }
   for (const burst of state.comboBursts) {
     burst.age += dt;
   }
@@ -876,78 +839,6 @@ function drawBackground() {
     return;
   }
 
-  const grd = ctx.createLinearGradient(0, 0, 0, height);
-  grd.addColorStop(0, "#8cebf3");
-  grd.addColorStop(0.52, "#1689bd");
-  grd.addColorStop(1, "#084a78");
-  ctx.fillStyle = grd;
-  ctx.fillRect(0, 0, width, height);
-
-  ctx.save();
-  ctx.globalAlpha = 0.18;
-  ctx.fillStyle = "#ffffff";
-  for (let i = 0; i < 5; i++) {
-    const x = ((i * 230 - state.worldTime * 22) % (CONFIG.world.baseWidth + 280)) * scale - 120;
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x + toScreen(56), 0);
-    ctx.lineTo(x + toScreen(170), height);
-    ctx.lineTo(x + toScreen(68), height);
-    ctx.fill();
-  }
-  ctx.restore();
-
-  for (const d of state.backgroundDolphins) drawBackgroundDolphin(d);
-  for (const b of state.particles) {
-    ctx.strokeStyle = "rgba(230, 255, 255, .62)";
-    ctx.lineWidth = Math.max(1, toScreen(1.2));
-    ctx.beginPath();
-    ctx.arc(toScreen(b.x), worldY(b.y), toScreen(b.r), 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  drawSeaPlants();
-}
-
-function drawBackgroundDolphin(d) {
-  const s = d.size;
-  const x = toScreen(d.x);
-  const y = worldY(d.y + Math.sin(d.phase) * 8);
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(s * scale, s * scale);
-  ctx.globalAlpha = 0.26;
-  ctx.fillStyle = "#d7f8ff";
-  ctx.beginPath();
-  ctx.ellipse(0, 0, 48, 17, -0.08, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(-36, 0);
-  ctx.lineTo(-70, -16 + Math.sin(d.phase * 2) * 6);
-  ctx.lineTo(-58, 0);
-  ctx.lineTo(-70, 16 - Math.sin(d.phase * 2) * 6);
-  ctx.closePath();
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(-2, -14);
-  ctx.lineTo(16, -33);
-  ctx.lineTo(24, -10);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-}
-
-function drawSeaPlants() {
-  const base = worldY(CONFIG.world.baseHeight);
-  ctx.strokeStyle = "rgba(37, 194, 139, .55)";
-  ctx.lineWidth = toScreen(5);
-  for (let i = 0; i < 14; i++) {
-    const x = (i * 87 - (state.worldTime * 38) % 87) * scale;
-    const h = toScreen(28 + (i % 4) * 13);
-    ctx.beginPath();
-    ctx.moveTo(x, base);
-    ctx.quadraticCurveTo(x + Math.sin(state.worldTime + i) * 12, base - h * 0.55, x + 8, base - h);
-    ctx.stroke();
-  }
 }
 
 function drawRings() {
@@ -980,15 +871,6 @@ function drawRingHalf(ring, half) {
     ctx.restore();
     return;
   }
-
-  if (half === "back") {
-    drawRingOpening(ring, innerRx, innerRy, depth);
-    drawTorusRingHalf(rx, ry, innerRx, innerRy, depth, ring.touched, "back");
-    ctx.restore();
-    return;
-  }
-
-  drawTorusRingHalf(rx, ry, innerRx, innerRy, depth, ring.touched, "front");
   ctx.restore();
 }
 
@@ -1226,7 +1108,6 @@ function drawOvalDolphin(rotationScale = 1) {
 
 function drawCuteDolphin(clipLeft = null, clipRight = null, drawShadow = true) {
   if (!dolphinSprite.complete || !dolphinSprite.naturalWidth) {
-    drawOvalDolphin(0.45);
     return;
   }
 

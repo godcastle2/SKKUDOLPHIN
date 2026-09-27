@@ -13,7 +13,7 @@ body,
   touch-action: none;
   font-family: Arial, "Noto Sans KR", sans-serif;
   color: #ffffff;
-  background: #118bb9;
+  background: #118bb9 url("../ACADEMY_BACKGROUND.png?v=20260928-2") center / cover no-repeat;
 }
 
 button,

@@ -193,6 +193,7 @@ function spawnRing() {
     lastCollisionNormal: null,
     currentCollider: null,
     currentContactId: null,
+    lastContactProbe: null,
     debugFrames: [],
     failSource: null,
     failReason: null,
@@ -345,7 +346,7 @@ function advanceRingContactState(ring, dt) {
       clearRecoverableRingFailure(ring);
     }
     if (!ring.pendingFail && ring.contactGraceTimer <= 0 && ring.noProgressDuration >= cfg.ringNoProgressDuration) {
-      if (ring.maxPenetration >= cfg.ringFailPenetrationThreshold) {
+      if (ring.lastContactProbe !== "head" && ring.maxPenetration >= cfg.ringFailPenetrationThreshold) {
         markRingHardCollision(ring, GameOverReason.RING_EXCESSIVE_PENETRATION, "advanceRingContactState:penetration");
       } else if (ring.stuckDuration >= cfg.ringStuckDuration
         || ring.contactDuration >= cfg.ringSoftContactDuration) {
@@ -556,9 +557,12 @@ function resolveRingCollision(ring, previousRingX, previousDolphinX, previousDol
   ring.lastCollisionNormal = { x: contact.normalX, y: contact.normalY };
   ring.currentCollider = contact.collider || null;
   ring.currentContactId = contact.contactId || ring.currentCollider;
+  ring.lastContactProbe = getContactProbeName(contact.contactId);
   ring.maxPenetration = Math.max(ring.maxPenetration, contact.penetration);
   if (ring.maxPenetration > cfg.maxGrazePenetration) ring.excessiveOverlap = true;
-  if (!ring.pendingFail && contact.penetration >= cfg.ringImmediateFailPenetrationThreshold) {
+  if (!ring.pendingFail
+    && ring.lastContactProbe !== "head"
+    && contact.penetration >= cfg.ringImmediateFailPenetrationThreshold) {
     markRingHardCollision(ring, GameOverReason.RING_EXCESSIVE_PENETRATION, "resolveRingCollision:immediate-penetration");
   }
   ring.hitCooldown = cfg.collisionCooldown;
@@ -570,6 +574,14 @@ function resolveRingCollision(ring, previousRingX, previousDolphinX, previousDol
   state.dolphin.vy = state.dolphin.body.vy;
   state.dolphin.angularVelocity = state.dolphin.body.angularVelocity;
   return contact;
+}
+
+function getContactProbeName(contactId) {
+  const probeIndex = Number(String(contactId || "").split(":")[1]);
+  if (probeIndex === 0) return "tail";
+  if (probeIndex === 1) return "torso";
+  if (probeIndex === 2) return "head";
+  return null;
 }
 
 function recordRingDebugFrame(ring, contact) {
@@ -597,6 +609,7 @@ function recordRingDebugFrame(ring, contact) {
     normalY: contact?.normalY ?? ring.lastCollisionNormal?.y ?? null,
     collider: contact?.collider ?? ring.currentCollider,
     contactId: contact?.contactId ?? ring.currentContactId,
+    contactProbe: ring.lastContactProbe,
     failSource: ring.failSource
   });
   if (ring.debugFrames.length > 20) ring.debugFrames.shift();
@@ -733,6 +746,7 @@ function triggerGameOver(reason = GameOverReason.OTHER, ring = null) {
     collisionNormal: ring?.lastCollisionNormal ?? null,
     collider: ring?.currentCollider ?? null,
     contactId: ring?.currentContactId ?? null,
+    contactProbe: ring?.lastContactProbe ?? null,
     contactState: ring?.contactState ?? null,
     failSource: ring?.failSource ?? null,
     frame: state.frameNumber,

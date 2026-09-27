@@ -276,12 +276,13 @@ def ring_failure_reason(
     contact_duration,
     stuck_duration,
     immediate_threshold=14,
+    contact_probe="torso",
 ):
-    if max_penetration >= immediate_threshold:
+    if contact_probe != "head" and max_penetration >= immediate_threshold:
         return "RING_EXCESSIVE_PENETRATION"
     if grace_remaining > 0 or no_progress_duration < 0.2:
         return None
-    if max_penetration >= 8:
+    if contact_probe != "head" and max_penetration >= 8:
         return "RING_EXCESSIVE_PENETRATION"
     if stuck_duration >= 0.18 or contact_duration >= 0.34:
         return "RING_STUCK"
@@ -448,6 +449,15 @@ class PhysicsTest(unittest.TestCase):
     def test_stuck_contact_fails_after_grace_and_no_progress(self):
         self.assertEqual(
             ring_failure_reason(0, 0.22, 3, 0.36, 0.2),
+            "RING_STUCK",
+        )
+
+    def test_head_impact_is_soft_during_recovery_window(self):
+        self.assertIsNone(ring_failure_reason(0, 0.22, 15, 0.22, 0.05, contact_probe="head"))
+
+    def test_head_impact_still_fails_if_truly_stuck(self):
+        self.assertEqual(
+            ring_failure_reason(0, 0.36, 15, 0.36, 0.2, contact_probe="head"),
             "RING_STUCK",
         )
 

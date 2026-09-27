@@ -16,41 +16,31 @@ Open:
 
 ## Public Deployment
 
-This project is ready to deploy as a small Python web server with SQLite.
+The game is deployed as a static site with GitHub Pages. Every push to `main`
+triggers `.github/workflows/pages.yml` and updates the public game automatically.
 
-Recommended simple path:
-
-1. Push this folder to GitHub.
-2. Create a new Web Service on Render.
-3. Select the repository.
-4. Render will detect `render.yaml`.
-5. Deploy.
-6. Share the deployed URL or open `/qr.html` to show a QR code.
-
-The included `render.yaml` creates a persistent disk and stores the leaderboard DB at:
+Public URL:
 
 ```text
-/data/scores.sqlite3
+https://godcastle2.github.io/eskaradolphingame/
 ```
+
+In the GitHub repository, set **Settings > Pages > Source** to **GitHub Actions**
+once. After that, the game remains available even when the development PC is off.
 
 ## Files
 
 - `index.html`: game UI
 - `qr.html`: QR share page
 - `src/config.js`: physics, difficulty, ring, and visual tuning
-- `src/game.js`: canvas rendering, controls, scoring, collision, ranking API calls
+- `src/game.js`: canvas rendering, controls, scoring, and collision handling
 - `src/physics.js`: lightweight game physics helpers
 - `src/styles.css`: mobile UI styling
-- `server.py`: static file server and SQLite ranking API
+- `server.py`: static file server
 - `tests/physics_test.py`: physics regression tests
 
-## Ranking API
-
-- `POST /api/scores`: `{ "player": "name", "score": 10 }`
-- `GET /api/rankings?limit=10`: top rankings
 - `GET /healthz`: deployment health check
 
 ## Notes
 
-- `scores.sqlite3` is local runtime data and is excluded from Docker builds.
 - For real events, use the deployed public URL in the QR code.

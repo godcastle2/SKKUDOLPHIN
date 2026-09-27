@@ -26,9 +26,7 @@
       <section id="startPanel" class="panel">
         <h1>돌핀 링 러시</h1>
         <p>터치로 부드럽게 떠오르고, 고리를 연속 Clean으로 통과하세요.</p>
-        <input id="playerName" maxlength="16" placeholder="닉네임" autocomplete="nickname">
         <button id="startButton">시작</button>
-        <button id="rankingButton" class="secondary">랭킹</button>
       </section>
 
       <section id="gameOverPanel" class="panel hidden">
@@ -36,18 +34,8 @@
         <dl>
           <div><dt>Score</dt><dd id="finalScore">0</dd></div>
           <div><dt>Best</dt><dd id="bestScore">0</dd></div>
-          <div><dt>My Rank</dt><dd id="myRank">-</dd></div>
         </dl>
         <button id="restartButton">다시하기</button>
-        <button id="showRankingButton" class="secondary">랭킹 확인</button>
-      </section>
-
-      <section id="rankingPanel" class="ranking hidden">
-        <header>
-          <h2>Ranking</h2>
-          <button id="closeRankingButton" aria-label="닫기">×</button>
-        </header>
-        <ol id="rankingList"></ol>
       </section>
     </main>
 

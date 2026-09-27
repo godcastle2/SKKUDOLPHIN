@@ -94,7 +94,8 @@ export function collideBodyWithTiltedRing(body, ring, options) {
   if (ring.passed || ring.hitCooldown > 0) return null;
 
   const c = getRingContact(body, ring, options.depthTilt, options.visualWidthScale, options.visualHeightScale);
-  const normalizedBody = body.radius / Math.max(options.visualWidthScale, options.visualHeightScale);
+  const collisionRadius = options.collisionRadius ?? body.radius;
+  const normalizedBody = collisionRadius / Math.max(options.visualWidthScale, options.visualHeightScale);
   const insideTubeBand = c.normalized > ring.inner - normalizedBody && c.normalized < ring.outer + normalizedBody;
   const crossingRingPlane = Math.abs(c.localX) < options.passageDepth + body.radius * 0.45;
   if (!insideTubeBand || !crossingRingPlane) return null;
@@ -131,6 +132,225 @@ export function collideBodyWithTiltedRing(body, ring, options) {
     impulseY,
     impulseSize,
     correction
+  };
+}
+
+export function collideBodyWithRingColliders(body, ring, options) {
+  if (ring.passed || ring.hitCooldown > 0) return null;
+
+  const contact = getRingColliderContact(body, ring, options);
+  if (!contact) return null;
+
+  return resolveRingColliderContact(body, ring, contact, options);
+}
+
+export function collideBodyWithSweptRingColliders(body, ring, options) {
+  if (ring.passed || ring.hitCooldown > 0) return null;
+
+  const currentRingX = ring.x;
+  const previousRingX = options.previousRingX ?? currentRingX;
+  const currentBodyX = body.x;
+  const currentBodyY = body.y;
+  const previousBodyX = options.previousBodyX ?? currentBodyX;
+  const previousBodyY = options.previousBodyY ?? currentBodyY;
+  const relativeTravel = Math.hypot(
+    (currentBodyX - previousBodyX) - (currentRingX - previousRingX),
+    currentBodyY - previousBodyY
+  );
+  const steps = Math.max(1, Math.ceil(relativeTravel / Math.max(1, options.ccdStep ?? 4)));
+  let contact = null;
+
+  for (let step = 0; step <= steps; step++) {
+    const t = step / steps;
+    const probeBody = {
+      ...body,
+      x: previousBodyX + (currentBodyX - previousBodyX) * t,
+      y: previousBodyY + (currentBodyY - previousBodyY) * t
+    };
+    const probeRing = {
+      ...ring,
+      x: previousRingX + (currentRingX - previousRingX) * t
+    };
+    contact = getRingColliderContact(probeBody, probeRing, options);
+    if (contact) break;
+  }
+  if (!contact) return null;
+  return resolveRingColliderContact(body, ring, contact, options);
+}
+
+function resolveRingColliderContact(body, ring, contact, options) {
+
+  body.x += contact.normalX * contact.penetration * options.positionCorrection;
+  body.y += contact.normalY * contact.penetration * options.positionCorrection;
+
+  const tangentX = -contact.normalY;
+  const tangentY = contact.normalX;
+  const relativeVx = body.vx - ring.vx;
+  const relativeVy = body.vy - ring.vy;
+  const normalVelocity = relativeVx * contact.normalX + relativeVy * contact.normalY;
+  const tangentVelocity = body.vx * tangentX + body.vy * tangentY;
+  const normalImpactSpeed = Math.max(0, -normalVelocity);
+  const retainedNormal = Math.max(0, body.vx * contact.normalX + body.vy * contact.normalY)
+    * (options.normalDamping ?? 0.16);
+  const retainedTangent = tangentVelocity
+    * (options.surfaceSlideFactor ?? 0.76)
+    * (options.contactFriction ?? 0.92);
+  body.vx = tangentX * retainedTangent + contact.normalX * retainedNormal;
+  body.vy = tangentY * retainedTangent + contact.normalY * retainedNormal;
+
+  const impulseSize = options.pushOutForce ?? 18;
+  const impulseX = contact.normalX * impulseSize;
+  const impulseY = contact.normalY * impulseSize;
+  applyImpulse(
+    body,
+    impulseX,
+    impulseY,
+    contact.bodyOffsetX * options.angularImpulseScale,
+    contact.bodyOffsetY * options.angularImpulseScale
+  );
+  if (options.angularResponse) {
+    const turnDirection = Math.sign(tangentVelocity) || Math.sign(contact.normalY) || 1;
+    body.angularVelocity = clamp(
+      body.angularVelocity + turnDirection * options.angularResponse,
+      -body.maxAngularVelocity,
+      body.maxAngularVelocity
+    );
+  }
+
+  return {
+    ...contact,
+    impulseX,
+    impulseY,
+    impulseSize,
+    normalImpactSpeed,
+    tangentVelocity
+  };
+}
+
+export function getRingColliderContact(body, ring, options) {
+  const radius = options.collisionRadius ?? body.radius;
+  const halfLength = options.colliderHalfLength ?? 0;
+  const inset = options.colliderInset ?? 0;
+  const outerX = ring.outer * options.visualWidthScale - inset;
+  const outerY = ring.outer * options.visualHeightScale - inset;
+  const innerX = ring.inner * options.visualWidthScale + inset;
+  const innerY = ring.inner * options.visualHeightScale + inset;
+  const capHalfWidth = outerX * options.capColliderWidthScale;
+  const sideHalfHeight = innerY * options.sideColliderHeightScale;
+  const colliders = [
+    { name: "top", left: -capHalfWidth, right: capHalfWidth, top: -outerY, bottom: -innerY },
+    { name: "bottom", left: -capHalfWidth, right: capHalfWidth, top: innerY, bottom: outerY },
+    { name: "left", left: -outerX, right: -innerX, top: -sideHalfHeight, bottom: sideHalfHeight },
+    { name: "right", left: innerX, right: outerX, top: -sideHalfHeight, bottom: sideHalfHeight }
+  ];
+
+  const bodyCos = Math.cos(body.angle || 0);
+  const bodySin = Math.sin(body.angle || 0);
+  const offsetX = options.colliderOffsetX ?? 0;
+  const offsetY = options.colliderOffsetY ?? 0;
+  const colliderCenterX = body.x + bodyCos * offsetX - bodySin * offsetY;
+  const colliderCenterY = body.y + bodySin * offsetX + bodyCos * offsetY;
+  const probes = halfLength > 0 ? [-halfLength, 0, halfLength] : [0];
+
+  for (const [probeIndex, bodyOffset] of probes.entries()) {
+    const probe = {
+      x: colliderCenterX + bodyCos * bodyOffset,
+      y: colliderCenterY + bodySin * bodyOffset
+    };
+    const local = toRingLocal(probe, ring);
+    for (const collider of colliders) {
+      const isSide = collider.name === "left" || collider.name === "right";
+      const insideOpening = Math.abs(local.y) + radius <= innerY;
+      if (options.openCenterChannel && isSide && insideOpening) continue;
+      const contact = circleRectangleContact(local.x, local.y, radius, collider);
+      if (!contact) continue;
+      const radialX = local.x / Math.max(1, outerX * outerX);
+      const radialY = local.y / Math.max(1, outerY * outerY);
+      const radialLength = Math.hypot(radialX, radialY) || 1;
+      let curvedNormalX = radialX / radialLength;
+      let curvedNormalY = radialY / radialLength;
+      if (curvedNormalX * contact.normalX + curvedNormalY * contact.normalY < 0) {
+        curvedNormalX *= -1;
+        curvedNormalY *= -1;
+      }
+      const cos = Math.cos(ring.tilt);
+      const sin = Math.sin(ring.tilt);
+      return {
+        collider: collider.name,
+        contactId: `${collider.name}:${probeIndex}`,
+        localX: local.x,
+        localY: local.y,
+        bodyOffsetX: bodyCos * (offsetX + bodyOffset) - bodySin * offsetY,
+        bodyOffsetY: bodySin * (offsetX + bodyOffset) + bodyCos * offsetY,
+        normalX: curvedNormalX * cos - curvedNormalY * sin,
+        normalY: curvedNormalX * sin + curvedNormalY * cos,
+        penetration: contact.penetration
+      };
+    }
+  }
+  return null;
+}
+
+export function isBodyInsideRingPassTrigger(body, ring, options) {
+  const bodyCos = Math.cos(body.angle || 0);
+  const bodySin = Math.sin(body.angle || 0);
+  const offsetX = options.colliderOffsetX ?? 0;
+  const offsetY = options.colliderOffsetY ?? 0;
+  const colliderCenter = {
+    x: body.x + bodyCos * offsetX - bodySin * offsetY,
+    y: body.y + bodySin * offsetX + bodyCos * offsetY
+  };
+  const local = toRingLocal(colliderCenter, ring);
+  const radius = options.collisionRadius ?? body.radius;
+  const innerX = ring.inner * options.visualWidthScale;
+  const innerY = ring.inner * options.visualHeightScale;
+  const verticalTolerance = options.verticalTolerance ?? 0;
+  return Math.abs(local.x) <= Math.min(options.passTriggerHalfWidth, innerX - radius)
+    && Math.abs(local.y) + radius <= innerY + verticalTolerance;
+}
+
+function toRingLocal(body, ring) {
+  const cos = Math.cos(-ring.tilt);
+  const sin = Math.sin(-ring.tilt);
+  const dx = body.x - ring.x;
+  const dy = body.y - ring.y;
+  return {
+    x: dx * cos - dy * sin,
+    y: dx * sin + dy * cos
+  };
+}
+
+function circleRectangleContact(x, y, radius, rectangle) {
+  const closestX = clamp(x, rectangle.left, rectangle.right);
+  const closestY = clamp(y, rectangle.top, rectangle.bottom);
+  const dx = x - closestX;
+  const dy = y - closestY;
+  const distanceSquared = dx * dx + dy * dy;
+  if (distanceSquared > radius * radius) return null;
+
+  const distance = Math.sqrt(distanceSquared);
+  if (distance > 0.0001) {
+    return {
+      normalX: dx / distance,
+      normalY: dy / distance,
+      penetration: radius - distance
+    };
+  }
+
+  const edges = [
+    { distance: x - rectangle.left, normalX: -1, normalY: 0 },
+    { distance: rectangle.right - x, normalX: 1, normalY: 0 },
+    { distance: y - rectangle.top, normalX: 0, normalY: -1 },
+    { distance: rectangle.bottom - y, normalX: 0, normalY: 1 }
+  ];
+  let nearest = edges[0];
+  for (const edge of edges) {
+    if (edge.distance < nearest.distance) nearest = edge;
+  }
+  return {
+    normalX: nearest.normalX,
+    normalY: nearest.normalY,
+    penetration: radius + nearest.distance
   };
 }
 

@@ -73,6 +73,9 @@ class BrowserSmokeTest(unittest.TestCase):
             self.assertTrue(page.locator("#startPanel").is_visible())
             self.assertEqual(page.locator("#rankingPanel").count(), 0)
             self.assertEqual(page.locator("#playerName").count(), 0)
+            hud = page.locator("#hud").bounding_box()
+            self.assertIsNotNone(hud)
+            self.assertLessEqual(960 - (hud["x"] + hud["width"]), 20)
 
             loaded_assets = page.evaluate("""
                 () => Promise.all([

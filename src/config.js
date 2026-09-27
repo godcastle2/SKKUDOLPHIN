@@ -101,7 +101,7 @@ export const CONFIG = {
   difficulty: {
     speedStepScore: 10,
     speedMultiplierPerStep: 1.2,
-    speedToGapRatio: 0.8,
+    speedToGapRatio: 0.6,
     spawnReductionPerScore: 0.004,
     minSpawnEvery: 1.24,
     heightDifficultyFullScore: 50,

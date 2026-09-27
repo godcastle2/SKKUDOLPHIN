@@ -81,7 +81,8 @@ class BrowserSmokeTest(unittest.TestCase):
                 () => Promise.all([
                   './LOWPOLY_DOLPHIN.png?v=20260928-2',
                   './ACADEMY_BACKGROUND.png?v=20260928-2',
-                  './2RING.png?v=20260928-2'
+                  './RING_BACK_LOWPOLY.png?v=20260928-3',
+                  './RING_FRONT_LOWPOLY.png?v=20260928-3'
                 ].map(async url => ({ url, status: (await fetch(url)).status })))
             """)
             self.assertTrue(all(asset["status"] == 200 for asset in loaded_assets), loaded_assets)

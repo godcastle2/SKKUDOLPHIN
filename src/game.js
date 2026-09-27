@@ -20,12 +20,12 @@ dolphinSprite.src = "./LOWPOLY_DOLPHIN.png?v=20260928-2";
 const DOLPHIN_SPRITE_CROP = { x: 0, y: 0, width: 1536, height: 1024 };
 const backgroundSprite = new Image();
 backgroundSprite.src = "./ACADEMY_BACKGROUND.png?v=20260928-2";
-const ringSpriteSheet = new Image();
-ringSpriteSheet.src = "./2RING.png?v=20260928-2";
-const RING_SPRITE_CROPS = {
-  back: { x: 8, y: 8, width: 871, height: 774 },
-  front: { x: 895, y: 8, width: 871, height: 774 }
+const ringSprites = {
+  back: new Image(),
+  front: new Image()
 };
+ringSprites.back.src = "./RING_BACK_LOWPOLY.png?v=20260928-3";
+ringSprites.front.src = "./RING_FRONT_LOWPOLY.png?v=20260928-3";
 const ui = {
   score: document.querySelector("#score"),
   combo: document.querySelector("#combo"),
@@ -908,7 +908,7 @@ function drawRingHalf(ring, half) {
   ctx.translate(x, y);
   ctx.rotate(ring.visualTilt || 0);
 
-  if (ringSpriteSheet.complete && ringSpriteSheet.naturalWidth) {
+  if (ringSprites[half].complete && ringSprites[half].naturalWidth) {
     drawRingSpriteLayer(half);
     ctx.restore();
     return;
@@ -917,15 +917,15 @@ function drawRingHalf(ring, half) {
 }
 
 function drawRingSpriteLayer(half) {
-  const crop = RING_SPRITE_CROPS[half];
+  const sprite = ringSprites[half];
   const drawWidth = toScreen(CONFIG.rings.spriteWidth);
   const drawHeight = toScreen(CONFIG.rings.spriteHeight);
   ctx.drawImage(
-    ringSpriteSheet,
-    crop.x,
-    crop.y,
-    crop.width,
-    crop.height,
+    sprite,
+    0,
+    0,
+    sprite.naturalWidth,
+    sprite.naturalHeight,
     -drawWidth * 0.5,
     -drawHeight * 0.5,
     drawWidth,

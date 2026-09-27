@@ -48,7 +48,7 @@ export const CONFIG = {
     visualWidthScale: 0.58,
     visualHeightScale: 1.08,
     visualDepth: 16,
-    spriteWidth: 144,
+    spriteWidth: 126,
     spriteHeight: 184,
     colliderInset: 3,
     sideColliderHeightScale: 0.72,

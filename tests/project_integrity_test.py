@@ -52,11 +52,11 @@ class ProjectIntegrityTest(unittest.TestCase):
         self.assertIn("actions/deploy-pages@v4", workflow)
 
     def test_speed_increases_every_ten_points_without_cap(self):
-        speed = lambda score: 255 + (score // 10) * 36
+        speed = lambda score: 255 + (score // 10) * 72
         self.assertEqual(speed(0), 255)
         self.assertEqual(speed(9), 255)
-        self.assertEqual(speed(10), 291)
-        self.assertEqual(speed(99), 579)
+        self.assertEqual(speed(10), 327)
+        self.assertEqual(speed(99), 903)
         self.assertGreater(speed(1000), 415)
 
     def test_spawn_formula_reaches_upper_and_lower_areas(self):

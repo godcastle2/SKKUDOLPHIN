@@ -52,12 +52,12 @@ class ProjectIntegrityTest(unittest.TestCase):
         self.assertIn("actions/deploy-pages@v4", workflow)
 
     def test_speed_multiplies_every_ten_points_without_cap(self):
-        speed = lambda score: 255 * (1.2 ** (score // 10))
+        speed = lambda score: 255 * (1.3 ** (score // 10))
         self.assertEqual(speed(0), 255)
         self.assertEqual(speed(9), 255)
-        self.assertAlmostEqual(speed(10), 306)
-        self.assertAlmostEqual(speed(20), 367.2)
-        self.assertAlmostEqual(speed(30), 440.64)
+        self.assertAlmostEqual(speed(10), 331.5)
+        self.assertAlmostEqual(speed(20), 430.95)
+        self.assertAlmostEqual(speed(30), 560.235)
         self.assertGreater(speed(1000), 415)
 
     def test_spawn_formula_reaches_upper_and_lower_areas(self):
@@ -91,11 +91,11 @@ class ProjectIntegrityTest(unittest.TestCase):
         late_change = abs((previous + (target - previous) * 0.9) - previous)
         self.assertGreater(late_change, early_change)
 
-    def test_speed_growth_affects_spatial_gap_at_sixty_percent(self):
+    def test_speed_growth_affects_spatial_gap_at_forty_percent(self):
         start_speed = 255
         faster_speed = 399
         speed_ratio = faster_speed / start_speed
-        expected_gap_ratio = 1 + (speed_ratio - 1) * 0.6
+        expected_gap_ratio = 1 + (speed_ratio - 1) * 0.4
         compensated_interval_ratio = expected_gap_ratio / speed_ratio
         actual_gap_ratio = speed_ratio * compensated_interval_ratio
         self.assertAlmostEqual(actual_gap_ratio, expected_gap_ratio)

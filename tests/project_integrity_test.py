@@ -66,8 +66,8 @@ class ProjectIntegrityTest(unittest.TestCase):
         samples = []
         for _ in range(500):
             target = minimum + random.random() * (maximum - minimum)
-            blended = last + (target - last) * 0.72
-            drift = (random.random() * 2 - 1) * 24
+            blended = last + (target - last) * 0.9
+            drift = (random.random() * 2 - 1) * 40
             last = max(minimum, min(maximum, blended + drift))
             samples.append(last)
         self.assertLess(min(samples), 130)
@@ -82,6 +82,23 @@ class ProjectIntegrityTest(unittest.TestCase):
         spawn_x = visible_world_right + ring_outer_radius + 70
         self.assertGreater(spawn_x - ring_outer_radius, visible_world_right)
         self.assertGreater(visible_world_right, 960)
+
+    def test_late_game_height_changes_are_larger(self):
+        previous = 270
+        target = 100
+        early_change = abs((previous + (target - previous) * 0.55) - previous)
+        late_change = abs((previous + (target - previous) * 0.9) - previous)
+        self.assertGreater(late_change, early_change)
+
+    def test_speed_growth_affects_spatial_gap_at_eighty_percent(self):
+        start_speed = 255
+        faster_speed = 399
+        speed_ratio = faster_speed / start_speed
+        expected_gap_ratio = 1 + (speed_ratio - 1) * 0.8
+        compensated_interval_ratio = expected_gap_ratio / speed_ratio
+        actual_gap_ratio = speed_ratio * compensated_interval_ratio
+        self.assertAlmostEqual(actual_gap_ratio, expected_gap_ratio)
+        self.assertLess(actual_gap_ratio, speed_ratio)
 
 
 if __name__ == "__main__":

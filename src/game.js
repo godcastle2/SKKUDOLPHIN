@@ -157,13 +157,28 @@ function flapDolphin() {
 
 function spawnRing() {
   const cfg = CONFIG.rings;
+  const heightDifficulty = clamp(
+    state.score / CONFIG.difficulty.heightDifficultyFullScore,
+    0,
+    1
+  );
+  const heightBlend = lerp(
+    CONFIG.difficulty.spawnHeightBlendStart,
+    CONFIG.difficulty.spawnHeightBlendEnd,
+    heightDifficulty
+  );
+  const verticalNoise = lerp(
+    CONFIG.difficulty.verticalNoiseStart,
+    CONFIG.difficulty.verticalNoiseEnd,
+    heightDifficulty
+  );
   const visibleWorldRight = Math.max(
     CONFIG.world.baseWidth,
     width / Math.max(scale, 0.001)
   );
   const targetY = cfg.minY + Math.random() * (cfg.maxY - cfg.minY);
-  const blendedY = state.lastRingY + (targetY - state.lastRingY) * CONFIG.difficulty.spawnHeightBlend;
-  const drift = (Math.random() * 2 - 1) * CONFIG.difficulty.verticalNoise;
+  const blendedY = state.lastRingY + (targetY - state.lastRingY) * heightBlend;
+  const drift = (Math.random() * 2 - 1) * verticalNoise;
   const visualTilt = cfg.minVisualTilt + Math.random() * (cfg.maxVisualTilt - cfg.minVisualTilt);
   state.lastRingY = clamp(blendedY + drift, cfg.minY, cfg.maxY);
   state.rings.push({
@@ -260,7 +275,15 @@ function update(dt) {
   }
 
   const speed = currentRingSpeed();
-  const spawnEvery = Math.max(CONFIG.difficulty.minSpawnEvery, CONFIG.rings.spawnEvery - state.score * CONFIG.difficulty.spawnReductionPerScore);
+  const baseSpawnEvery = CONFIG.rings.spawnEvery
+    - state.score * CONFIG.difficulty.spawnReductionPerScore;
+  const speedRatio = speed / CONFIG.rings.startSpeed;
+  const spatialGapScale = 1
+    + (speedRatio - 1) * CONFIG.difficulty.speedToGapRatio;
+  const spawnEvery = Math.max(
+    CONFIG.difficulty.minSpawnEvery,
+    baseSpawnEvery * spatialGapScale / speedRatio
+  );
   state.spawnTimer -= dt;
   if (state.spawnTimer <= 0) {
     spawnRing();
@@ -1337,6 +1360,10 @@ function loop(now) {
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
+}
+
+function lerp(start, end, amount) {
+  return start + (end - start) * amount;
 }
 
 window.addEventListener("resize", resize);

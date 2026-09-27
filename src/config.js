@@ -101,10 +101,14 @@ export const CONFIG = {
   difficulty: {
     speedStepScore: 10,
     speedPerStep: 72,
+    speedToGapRatio: 0.8,
     spawnReductionPerScore: 0.004,
     minSpawnEvery: 1.24,
-    spawnHeightBlend: 0.72,
-    verticalNoise: 24,
+    heightDifficultyFullScore: 50,
+    spawnHeightBlendStart: 0.55,
+    spawnHeightBlendEnd: 0.9,
+    verticalNoiseStart: 16,
+    verticalNoiseEnd: 40,
     obstacleScoreThreshold: 45
   },
   effects: {

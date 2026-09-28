@@ -1,4 +1,4 @@
-import { CONFIG } from "./config.js";
+import { CONFIG } from "./config.js?v=20260929-1";
 import {
   addForce,
   addTorque,
@@ -589,8 +589,18 @@ function resolveRingCollision(ring, previousRingX, previousDolphinX, previousDol
     markRingHardCollision(ring, GameOverReason.RING_EXCESSIVE_PENETRATION, "resolveRingCollision:immediate-penetration");
   }
   ring.hitCooldown = cfg.collisionCooldown;
-  ring.stallTimer = Math.max(ring.stallTimer || 0, 0.09);
-  state.globalStallTimer = Math.max(state.globalStallTimer || 0, 0.06);
+  const capContact = contact.collider === "top" || contact.collider === "bottom";
+  if (capContact && !ring.hasPassedTrigger) {
+    const releaseDirection = contact.collider === "top" ? -1 : 1;
+    state.dolphin.body.y += releaseDirection * cfg.capReleaseDistance;
+    state.dolphin.body.vy = releaseDirection * Math.max(
+      Math.abs(state.dolphin.body.vy),
+      cfg.capReleaseSpeed
+    );
+  } else {
+    ring.stallTimer = Math.max(ring.stallTimer || 0, 0.09);
+    state.globalStallTimer = Math.max(state.globalStallTimer || 0, 0.06);
+  }
   state.dolphin.x = state.dolphin.body.x;
   state.dolphin.y = state.dolphin.body.y;
   state.dolphin.vx = state.dolphin.body.vx;
@@ -836,6 +846,10 @@ function getDolphinPassState() {
 
   for (const ring of state.rings) {
     if (!ring.isDolphinInside) continue;
+    const openingHalfHeight = ring.inner * CONFIG.rings.visualHeightScale
+      - CONFIG.dolphin.ringCollisionRadius;
+    const verticalDistance = Math.abs(torsoCenter.y - ring.y);
+    if (verticalDistance > openingHalfHeight + CONFIG.rings.passGrazeVerticalTolerance) continue;
     const distance = ring.x - torsoCenter.x;
     if (Math.abs(distance) < closestDistance) {
       activeRing = ring;
@@ -920,6 +934,11 @@ function drawRingSpriteLayer(half) {
   const sprite = ringSprites[half];
   const drawWidth = toScreen(CONFIG.rings.spriteWidth);
   const drawHeight = toScreen(CONFIG.rings.spriteHeight);
+  if (half === "front") {
+    ctx.beginPath();
+    ctx.rect(-drawWidth * 0.55, -drawHeight * 0.55, drawWidth * 0.62, drawHeight * 1.1);
+    ctx.clip();
+  }
   ctx.drawImage(
     sprite,
     0,

@@ -90,6 +90,8 @@ export const CONFIG = {
     maxGrazeDuration: 0.24,
     minimumForwardProgress: 0.9,
     ringPushOutForce: 18,
+    capReleaseDistance: 5,
+    capReleaseSpeed: 115,
     ringHitAngularResponse: 0.62,
     collisionSpeedScale: 0.45,
     ccdStep: 4,

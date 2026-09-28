@@ -1,4 +1,4 @@
-import { CONFIG } from "./config.js?v=20260929-1";
+import { CONFIG } from "./config.js?v=20260929-2";
 import {
   addForce,
   addTorque,
@@ -528,12 +528,12 @@ function scoreRing(ring) {
   if (clean) {
     state.combo += 1;
     state.score += state.combo;
-    showToast(`CLEAN! +${state.combo}`);
+    showToast(`완벽 통과! +${state.combo}`);
     showComboBurst(ring, state.combo);
   } else {
     state.score += 1;
     state.combo = 0;
-    showToast("HIT +1");
+    showToast("통과! +1");
   }
   updateHud();
 }
@@ -738,8 +738,8 @@ function drawCollisionDebugOverlay() {
     `Contact: ${ring.softContact ? "SOFT" : "NONE"}  Penetration: ${ring.lastPenetration.toFixed(2)}`,
     `Contact Time: ${ring.contactDuration.toFixed(2)}  No Progress: ${ring.noProgressDuration.toFixed(2)}`,
     `Deviation: ${ring.corridorDeviation.toFixed(2)}  Trigger: ${ring.hasPassedTrigger}`,
-    `Game Over: ${state.gameOverReason || "false"}`
-  ] : [`Game Over: ${state.gameOverReason || "false"}`];
+    `게임 종료: ${state.gameOverReason || "없음"}`
+  ] : [`게임 종료: ${state.gameOverReason || "없음"}`];
   ctx.save();
   ctx.font = "12px monospace";
   ctx.textBaseline = "top";
@@ -788,7 +788,7 @@ function triggerGameOver(reason = GameOverReason.OTHER, ring = null) {
   };
   state.gameOverReason = reason;
   state.gameOverDetails = details;
-  console.group("[GAME OVER]");
+  console.group("[게임 종료]");
   for (const [key, value] of Object.entries(details)) console.log(`${key} =`, value);
   if (ring?.debugFrames?.length) console.table(ring.debugFrames);
   console.groupEnd();
@@ -1123,7 +1123,7 @@ function drawComboBursts() {
     ctx.textBaseline = "middle";
     ctx.shadowColor = "rgba(0, 44, 82, .5)";
     ctx.shadowBlur = toScreen(8);
-    ctx.fillText(`COMBO x${burst.combo}`, 0, toScreen(-92 - 20 * ease));
+    ctx.fillText(`연속 ${burst.combo}회`, 0, toScreen(-92 - 20 * ease));
     ctx.restore();
   }
 }

@@ -56,6 +56,18 @@ class ProjectIntegrityTest(unittest.TestCase):
         self.assertIn('<meta property="og:image" content="https://godcastle2.github.io/', html)
         self.assertNotIn("돌핀 링 러시", html)
 
+    def test_player_facing_score_labels_are_korean(self):
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        game = (ROOT / "src" / "game.js").read_text(encoding="utf-8")
+        for label in ["점수", "연속 통과", "게임 종료", "총점", "최고 점수"]:
+            self.assertIn(label, html)
+        for label in ["완벽 통과!", "통과! +1", "연속 ${burst.combo}회"]:
+            self.assertIn(label, game)
+        for old_label in ["Clean Combo", "Game Over", ">Score<", ">Best<"]:
+            self.assertNotIn(old_label, html)
+        for old_label in ["CLEAN!", "HIT +1", "COMBO x"]:
+            self.assertNotIn(old_label, game)
+
     def test_pages_workflow_deploys_main_branch(self):
         workflow = (ROOT / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
         self.assertIn("branches: [main]", workflow)
@@ -103,11 +115,11 @@ class ProjectIntegrityTest(unittest.TestCase):
         late_change = abs((previous + (target - previous) * 0.9) - previous)
         self.assertGreater(late_change, early_change)
 
-    def test_speed_growth_affects_spatial_gap_at_forty_percent(self):
+    def test_speed_growth_affects_spatial_gap_at_thirty_percent(self):
         start_speed = 255
         faster_speed = 399
         speed_ratio = faster_speed / start_speed
-        expected_gap_ratio = 1 + (speed_ratio - 1) * 0.4
+        expected_gap_ratio = 1 + (speed_ratio - 1) * 0.3
         compensated_interval_ratio = expected_gap_ratio / speed_ratio
         actual_gap_ratio = speed_ratio * compensated_interval_ratio
         self.assertAlmostEqual(actual_gap_ratio, expected_gap_ratio)

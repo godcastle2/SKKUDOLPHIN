@@ -14,6 +14,7 @@ class ProjectIntegrityTest(unittest.TestCase):
             "LOWPOLY_DOLPHIN.png": (1536, 1024),
             "ACADEMY_BACKGROUND.png": (1672, 941),
             "RING_LOWPOLY_THIN.png": (1024, 1536),
+            "SOCIAL_PREVIEW.jpg": (1200, 630),
         }
         for filename, size in expected.items():
             with self.subTest(filename=filename), Image.open(ROOT / filename) as image:
@@ -54,7 +55,10 @@ class ProjectIntegrityTest(unittest.TestCase):
         self.assertIn(f"<title>{title}</title>", html)
         self.assertIn(f'<meta property="og:title" content="{title}">', html)
         self.assertIn('<meta property="og:url" content="https://godcastle2.github.io/SKKUDOLPHIN/">', html)
-        self.assertIn('<meta property="og:image" content="https://godcastle2.github.io/SKKUDOLPHIN/', html)
+        self.assertIn('<meta property="og:image" content="https://godcastle2.github.io/SKKUDOLPHIN/SOCIAL_PREVIEW.jpg">', html)
+        self.assertIn('<meta property="og:image:type" content="image/jpeg">', html)
+        self.assertIn('<meta property="og:image:width" content="1200">', html)
+        self.assertIn('<meta property="og:image:height" content="630">', html)
         self.assertNotIn("돌핀 링 러시", html)
 
     def test_player_facing_score_labels_are_korean(self):

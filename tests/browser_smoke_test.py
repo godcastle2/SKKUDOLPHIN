@@ -69,7 +69,7 @@ class BrowserSmokeTest(unittest.TestCase):
     def test_desktop_assets_canvas_and_game_flow(self):
         context, page, console_errors, failed_requests = self.open_page({"width": 960, "height": 540})
         try:
-            self.assertEqual(page.title(), "돌핀 링 러시")
+            self.assertEqual(page.title(), "명륜당 앞바다에 돌고래가 산다!")
             self.assertTrue(page.locator("#startPanel").is_visible())
             self.assertEqual(page.locator("#rankingPanel").count(), 0)
             self.assertEqual(page.locator("#playerName").count(), 0)

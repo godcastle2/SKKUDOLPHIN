@@ -24,8 +24,8 @@ const ringSprites = {
   back: new Image(),
   front: new Image()
 };
-ringSprites.back.src = "./RING_BACK_LOWPOLY.png?v=20260928-3";
-ringSprites.front.src = "./RING_FRONT_LOWPOLY.png?v=20260928-3";
+ringSprites.back.src = "./RING_LOWPOLY_THIN.png?v=20260928-1";
+ringSprites.front.src = "./RING_LOWPOLY_THIN.png?v=20260928-1";
 const ui = {
   score: document.querySelector("#score"),
   combo: document.querySelector("#combo"),

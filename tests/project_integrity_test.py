@@ -13,8 +13,7 @@ class ProjectIntegrityTest(unittest.TestCase):
         expected = {
             "LOWPOLY_DOLPHIN.png": (1536, 1024),
             "ACADEMY_BACKGROUND.png": (1672, 941),
-            "RING_BACK_LOWPOLY.png": (1024, 1536),
-            "RING_FRONT_LOWPOLY.png": (1024, 1536),
+            "RING_LOWPOLY_THIN.png": (1024, 1536),
         }
         for filename, size in expected.items():
             with self.subTest(filename=filename), Image.open(ROOT / filename) as image:
@@ -33,8 +32,7 @@ class ProjectIntegrityTest(unittest.TestCase):
         styles = (ROOT / "src" / "styles.css").read_text(encoding="utf-8")
         self.assertIn("LOWPOLY_DOLPHIN.png", game)
         self.assertIn("ACADEMY_BACKGROUND.png", game)
-        self.assertIn("RING_BACK_LOWPOLY.png", game)
-        self.assertIn("RING_FRONT_LOWPOLY.png", game)
+        self.assertIn("RING_LOWPOLY_THIN.png", game)
         self.assertNotIn("2RING.png", game + styles)
         self.assertIn("ACADEMY_BACKGROUND.png", styles)
         self.assertNotIn("DOLPHINIMAGE.png", game + styles)

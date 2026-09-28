@@ -53,7 +53,8 @@ class ProjectIntegrityTest(unittest.TestCase):
         title = "명륜당 앞바다에 돌고래가 산다!"
         self.assertIn(f"<title>{title}</title>", html)
         self.assertIn(f'<meta property="og:title" content="{title}">', html)
-        self.assertIn('<meta property="og:image" content="https://godcastle2.github.io/', html)
+        self.assertIn('<meta property="og:url" content="https://godcastle2.github.io/SKKUDOLPHIN/">', html)
+        self.assertIn('<meta property="og:image" content="https://godcastle2.github.io/SKKUDOLPHIN/', html)
         self.assertNotIn("돌핀 링 러시", html)
 
     def test_player_facing_score_labels_are_korean(self):

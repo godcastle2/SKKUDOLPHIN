@@ -22,7 +22,7 @@ python server.py
 공개 주소:
 
 ```text
-https://godcastle2.github.io/eskaradolphingame/
+https://godcastle2.github.io/SKKUDOLPHIN/
 ```
 
 GitHub 저장소에서 **Settings > Pages > Source**를 **GitHub Actions**로 한 번 설정하면

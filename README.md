@@ -1,4 +1,4 @@
-# Dolphin Ring Rush
+# 명륜당 앞바다에 돌고래가 산다!
 
 Mobile web game where players guide a dolphin through rings and compete on an online leaderboard.
 

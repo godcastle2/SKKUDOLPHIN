@@ -29,5 +29,5 @@ if __name__ == "__main__":
     os.chdir(ROOT)
     port = int(os.environ.get("PORT", "8000"))
     server = ThreadingHTTPServer(("0.0.0.0", port), Handler)
-    print(f"Serving Dolphin Ring Rush at http://localhost:{port}")
+    print(f"Serving 명륜당 앞바다에 돌고래가 산다! at http://localhost:{port}")
     server.serve_forever()

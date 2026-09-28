@@ -48,6 +48,14 @@ class ProjectIntegrityTest(unittest.TestCase):
         for removed_term in ["rankingpanel", "rankingbutton", "playername", "/api/rankings", "/api/scores"]:
             self.assertNotIn(removed_term, source)
 
+    def test_link_preview_uses_current_korean_title(self):
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        title = "명륜당 앞바다에 돌고래가 산다!"
+        self.assertIn(f"<title>{title}</title>", html)
+        self.assertIn(f'<meta property="og:title" content="{title}">', html)
+        self.assertIn('<meta property="og:image" content="https://godcastle2.github.io/', html)
+        self.assertNotIn("돌핀 링 러시", html)
+
     def test_pages_workflow_deploys_main_branch(self):
         workflow = (ROOT / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
         self.assertIn("branches: [main]", workflow)
